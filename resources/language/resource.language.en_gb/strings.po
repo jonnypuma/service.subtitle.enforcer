@@ -1,0 +1,253 @@
+# Kodi Media Center language file
+# Addon Name: Subtitle Enforcer
+# Addon id: service.subtitle.enforcer
+# Addon Provider: Skippy-McSkipface
+msgid ""
+msgstr ""
+"Project-Id-Version: Subtitle Enforcer\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-11-09 13:10+0100\n"
+"PO-Revision-Date: 2026-11-09 13:10+0100\n"
+"Last-Translator: \n"
+"Language-Team: English (United Kingdom)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: en_GB\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgctxt "#32000"
+msgid "General"
+msgstr "General"
+
+msgctxt "#32001"
+msgid "Turn the service on, and choose whether playback seeks backward so subtitles appear."
+msgstr "Turn the service on, and choose whether playback seeks backward so subtitles appear."
+
+msgctxt "#32002"
+msgid "Service"
+msgstr "Service"
+
+msgctxt "#32003"
+msgid "Enable Subtitle Enforcer"
+msgstr "Enable Subtitle Enforcer"
+
+msgctxt "#32004"
+msgid "Turn Subtitle Enforcer on or off."
+msgstr "Turn Subtitle Enforcer on or off."
+
+msgctxt "#32005"
+msgid "Seek back"
+msgstr "Seek back"
+
+msgctxt "#32006"
+msgid "Seek back to force subtitles to appear"
+msgstr "Seek back to force subtitles to appear"
+
+msgctxt "#32007"
+msgid "After a video starts from the beginning, wait, then skip backward so Kodi draws subtitles that otherwise stay hidden."
+msgstr "After a video starts from the beginning, wait, then skip backward so Kodi draws subtitles that otherwise stay hidden."
+
+msgctxt "#32008"
+msgid "Wait before seeking (seconds)"
+msgstr "Wait before seeking (seconds)"
+
+msgctxt "#32009"
+msgid "How long playback runs before skipping backward."
+msgstr "How long playback runs before skipping backward."
+
+msgctxt "#32010"
+msgid "Seconds to seek back"
+msgstr "Seconds to seek back"
+
+msgctxt "#32011"
+msgid "How far to jump back. One second is enough for most files."
+msgstr "How far to jump back. One second is enough for most files."
+
+msgctxt "#32012"
+msgid "Audio"
+msgstr "Audio"
+
+msgctxt "#32013"
+msgid "When I understand the audio"
+msgstr "When I understand the audio"
+
+msgctxt "#32014"
+msgid "Used when the audio language is one you marked as a language you understand. Full subtitles are still used for every other audio language."
+msgstr "Used when the audio language is one you marked as a language you understand. Full subtitles are still used for every other audio language."
+
+msgctxt "#32015"
+msgid "Turn subtitles off when nothing matches"
+msgstr "Turn subtitles off when nothing matches"
+
+msgctxt "#32016"
+msgid "If none of the priority languages are available, disable subtitles instead of keeping the track Kodi already selected."
+msgstr "If none of the priority languages are available, disable subtitles instead of keeping the track Kodi already selected."
+
+msgctxt "#32017"
+msgid "On screen"
+msgstr "On screen"
+
+msgctxt "#32018"
+msgid "Show the chosen subtitle"
+msgstr "Show the chosen subtitle"
+
+msgctxt "#32019"
+msgid "Display a short message when a subtitle is selected or turned off."
+msgstr "Display a short message when a subtitle is selected or turned off."
+
+msgctxt "#32020"
+msgid "Languages"
+msgstr "Languages"
+
+msgctxt "#32021"
+msgid "Priority 1 is used when that subtitle exists. Otherwise the next priority is tried."
+msgstr "Priority 1 is used when that subtitle exists. Otherwise the next priority is tried."
+
+msgctxt "#32022"
+msgid "Priority 1"
+msgstr "Priority 1"
+
+msgctxt "#32023"
+msgid "Priority 2"
+msgstr "Priority 2"
+
+msgctxt "#32024"
+msgid "Priority 3"
+msgstr "Priority 3"
+
+msgctxt "#32025"
+msgid "Priority 4"
+msgstr "Priority 4"
+
+msgctxt "#32026"
+msgid "Priority 5"
+msgstr "Priority 5"
+
+msgctxt "#32027"
+msgid "Language"
+msgstr "Language"
+
+msgctxt "#32028"
+msgid "Subtitle language for this priority. Original language follows the film. Default language uses the file's default audio language. Priority 1 is tried first."
+msgstr "Subtitle language for this priority. Original language follows the film. Default language uses the file's default audio language. Priority 1 is tried first."
+
+msgctxt "#32029"
+msgid "I understand this language"
+msgstr "I understand this language"
+
+msgctxt "#32030"
+msgid "When the audio is this language, use the audio rule instead of a full subtitle."
+msgstr "When the audio is this language, use the audio rule instead of a full subtitle."
+
+msgctxt "#32031"
+msgid "Hearing impaired (HI)"
+msgstr "Hearing impaired (HI)"
+
+msgctxt "#32032"
+msgid "Use a hearing impaired subtitle for this language when one is available."
+msgstr "Use a hearing impaired subtitle for this language when one is available."
+
+msgctxt "#32033"
+msgid "SDH"
+msgstr "SDH"
+
+msgctxt "#32034"
+msgid "Use an SDH subtitle for this language when one is available."
+msgstr "Use an SDH subtitle for this language when one is available."
+
+msgctxt "#32035"
+msgid "Forced"
+msgstr "Forced"
+
+msgctxt "#32036"
+msgid "Use a forced subtitle for this language when one is available."
+msgstr "Use a forced subtitle for this language when one is available."
+
+msgctxt "#32037"
+msgid "Kodi subtitle language"
+msgstr "Kodi subtitle language"
+
+msgctxt "#32038"
+msgid "Custom"
+msgstr "Custom"
+
+msgctxt "#32039"
+msgid "Custom language"
+msgstr "Custom language"
+
+msgctxt "#32040"
+msgid "Type a language name or code that is not in the list, such as Welsh or cym."
+msgstr "Type a language name or code that is not in the list, such as Welsh or cym."
+
+msgctxt "#32041"
+msgid "Exceptions"
+msgstr "Exceptions"
+
+msgctxt "#32042"
+msgid "Skip trailers and extras."
+msgstr "Skip trailers and extras."
+
+msgctxt "#32043"
+msgid "Skip trailers"
+msgstr "Skip trailers"
+
+msgctxt "#32044"
+msgid "Do not change subtitles when the file name ends with trailer, or the file is inside a Trailers folder."
+msgstr "Do not change subtitles when the file name ends with trailer, or the file is inside a Trailers folder."
+
+msgctxt "#32045"
+msgid "Skip extras"
+msgstr "Skip extras"
+
+msgctxt "#32046"
+msgid "Do not change subtitles for samples, featurettes, interviews, deleted scenes, or behind-the-scenes videos."
+msgstr "Do not change subtitles for samples, featurettes, interviews, deleted scenes, or behind-the-scenes videos."
+
+msgctxt "#32047"
+msgid "Show rules"
+msgstr "Show rules"
+
+msgctxt "#32048"
+msgid "Separate shows with semicolons or new lines. A name alone leaves that show unchanged. Bluey = off turns subtitles off. Dark = German forces German."
+msgstr "Separate shows with semicolons or new lines. A name alone leaves that show unchanged. Bluey = off turns subtitles off. Dark = German forces German."
+
+msgctxt "#32049"
+msgid "TMDB API key"
+msgstr "TMDB API key"
+
+msgctxt "#32050"
+msgid "Leave empty to use TMDBHelper's API key. The key looks up the film's original language."
+msgstr "Leave empty to use TMDBHelper's API key. The key looks up the film's original language."
+
+msgctxt "#32051"
+msgid "TMDB"
+msgstr "TMDB"
+
+msgctxt "#32052"
+msgid "Rules"
+msgstr "Rules"
+
+msgctxt "#32053"
+msgid "Give a show or movie its own subtitle language."
+msgstr "Give a show or movie its own subtitle language."
+
+msgctxt "#32054"
+msgid "Add TV show"
+msgstr "Add TV show"
+
+msgctxt "#32055"
+msgid "Search for a TV show, pick it, then choose the language for that show."
+msgstr "Search for a TV show, pick it, then choose the language for that show."
+
+msgctxt "#32056"
+msgid "Manage show rules"
+msgstr "Manage show rules"
+
+msgctxt "#32057"
+msgid "Add the playing title or search for a show or movie, then choose its subtitle language. A saved rule can be changed or removed."
+msgstr "Add the playing title or search for a show or movie, then choose its subtitle language. A saved rule can be changed or removed."
+
+msgctxt "#32058"
+msgid "Set subtitle language for this title"
+msgstr "Set subtitle language for this title"
