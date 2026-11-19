@@ -1,5 +1,7 @@
 # Subtitle Enforcer
 
+**Project page:** [jonnypuma.github.io/#/service.subtitle.enforcer](https://jonnypuma.github.io/#/service.subtitle.enforcer) · **All add-ons and apps by jonnypuma:** [jonnypuma.github.io](https://jonnypuma.github.io/)
+
 Kodi service add-on that turns on a preferred subtitle when playback starts. It can also seek backward a few seconds so embedded subtitles actually appear.
 
 ## What it does
