@@ -1,5 +1,16 @@
 # Changelog
 
+## Version 2.4.1
+- Separated the rules script entry point (`resources/lib/script.py`) from the background service
+- Fixed context-menu TV show lookup when opened on an episode or season without a `TvShowDBID`
+- Fixed stale TMDBHelper IDs affecting `Original language` lookups on unscraped items
+- Fixed episode titles leaking into show-rule matching when `showtitle` is empty
+- Fixed trailer/extra path detection for URLs with query strings or fragments
+- Fixed `_bool_setting()` ignoring its `true` default when a setting is unset
+- Used the add-on's profile directory API and atomic writes for `show_rules.json`
+- Cached settings, show rules, and TMDBHelper API keys to reduce per-tick I/O and JSON-RPC overhead
+- Cleaned up `addon.xml` metadata and `resources/settings.xml` group labels
+
 ## Version 2.4.0
 - A show or movie can keep its own subtitle language
 - Rules can be added from the playing title, search, or the library context menu, then changed or removed

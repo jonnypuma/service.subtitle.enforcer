@@ -604,7 +604,7 @@
             </group>
         </category>
         <category id="rules" label="32052" help="32053">
-            <group id="1" label="32056">
+            <group id="1" label="32052">
                 <setting id="manage_shows" type="action" label="32056" help="32057">
                     <level>0</level>
                     <control type="button" format="action">
@@ -614,7 +614,7 @@
             </group>
         </category>
         <category id="exceptions" label="32041" help="32042">
-            <group id="1" label="32043">
+            <group id="1" label="32041">
                 <setting id="skip_trailers" type="boolean" label="32043" help="32044">
                     <level>0</level>
                     <default>true</default>

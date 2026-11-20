@@ -29,6 +29,9 @@ addon_mod = types.ModuleType("xbmcaddon")
 
 
 class Addon(object):
+    def __init__(self, addon_id=None):
+        self.addon_id = addon_id
+
     def getAddonInfo(self, key):
         return ""
 
@@ -197,6 +200,10 @@ class PathTests(unittest.TestCase):
         self.assertTrue(default.is_extra_path(r"D:\Movies\Film\Extras\interview.mkv"))
         self.assertFalse(default.is_extra_path(r"D:\Movies\Film.mkv"))
 
+    def test_url_query_string_does_not_break_trailer_or_extra_detection(self):
+        self.assertTrue(default.is_trailer_path("https://example.com/Film-trailer.mkv?v=1.2"))
+        self.assertTrue(default.is_extra_path("https://example.com/Extras/featurette.mp4?token=abc.def"))
+
 
 class ShowRuleTests(unittest.TestCase):
     def setUp(self):
@@ -328,6 +335,16 @@ class ShowRuleTests(unittest.TestCase):
         )
         self.assertEqual([hit["mediatype"] for hit in hits], ["tvshow", "movie"])
 
+    def test_episode_title_is_excluded_from_candidate_titles(self):
+        titles = default.candidate_titles({
+            "mediatype": "tvshow",
+            "showtitle": "",
+            "title": "Pilot",
+            "path": r"D:\TV\Dark\Season 1\S01E01.mkv",
+        })
+        self.assertNotIn("Pilot", titles)
+        self.assertIn("Dark", titles)
+
     def test_language_for_a_show_starts_with_default(self):
         self.assertEqual(default.show_language_choices()[0], ("default", "Default language"))
 
@@ -437,6 +454,63 @@ class SettingsTests(unittest.TestCase):
         self.assertIn("rules", categories)
         self.assertIn("exceptions", categories)
         self.assertLess(categories.index("rules"), categories.index("exceptions"))
+
+    def test_bool_setting_respects_true_default_when_unset(self):
+        SETTINGS.clear()
+        self.assertTrue(default._bool_setting("enabled", True))
+        SETTINGS["enabled"] = "false"
+        self.assertFalse(default._bool_setting("enabled", True))
+        SETTINGS.clear()
+
+    def test_context_hit_does_not_pass_episode_dbid_as_tvshowid(self):
+        orig_info = xbmc.getInfoLabel
+        orig_rpc = xbmc.executeJSONRPC
+        rpc_calls = []
+
+        def fake_info(name):
+            return {
+                "ListItem.DBType": "episode",
+                "ListItem.DBID": "99",
+                "ListItem.TvShowTitle": "Dark",
+            }.get(name, "")
+
+        def fake_rpc(payload):
+            data = json.loads(payload)
+            rpc_calls.append(data)
+            return json.dumps({"result": {}})
+
+        xbmc.getInfoLabel = fake_info
+        xbmc.executeJSONRPC = fake_rpc
+        try:
+            hit = default.context_hit()
+        finally:
+            xbmc.getInfoLabel = orig_info
+            xbmc.executeJSONRPC = orig_rpc
+
+        tvshow_calls = [c for c in rpc_calls if c.get("method") == "VideoLibrary.GetTVShowDetails"]
+        self.assertEqual(tvshow_calls, [])
+        self.assertEqual(hit["title"], "Dark")
+
+    def test_tmdb_item_query_ignores_stale_tmdbhelper_id(self):
+        orig_info = xbmc.getInfoLabel
+        orig_vis = xbmc.getCondVisibility
+
+        def fake_info(name):
+            return {
+                "VideoPlayer.Title": "Actual Movie",
+                "Window(home).Property(TMDbHelper.Player.title)": "Previous Movie",
+                "Window(home).Property(TMDbHelper.Player.tmdb_id)": "12345",
+            }.get(name, "")
+
+        xbmc.getInfoLabel = fake_info
+        xbmc.getCondVisibility = lambda expr: True
+        try:
+            query = default.tmdb_item_query()
+        finally:
+            xbmc.getInfoLabel = orig_info
+            xbmc.getCondVisibility = orig_vis
+
+        self.assertEqual(query["tmdb_id"], "")
 
 
 if __name__ == "__main__":

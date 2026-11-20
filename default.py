@@ -23,8 +23,12 @@ import xbmc
 import xbmcaddon
 import xbmcgui
 
-ADDON = xbmcaddon.Addon()
-ADDON_NAME = ADDON.getAddonInfo("name")
+ADDON_ID = "service.subtitle.enforcer"
+try:
+    ADDON = xbmcaddon.Addon(ADDON_ID)
+except TypeError:
+    ADDON = xbmcaddon.Addon()
+ADDON_NAME = ADDON.getAddonInfo("name") or "Subtitle Enforcer"
 
 # How long to wait for subtitle streams to show up and settle.
 SUBTITLE_WAIT = 15.0
@@ -253,11 +257,14 @@ def tmdbhelper_lookup_pending():
 
 _TMDB_API = "https://api.themoviedb.org/3"
 _tmdb_cache = {"identity": None, "language": ""}
+_tmdbhelper_key_cache = {"loaded": False, "key": ""}
 
 
 def clear_tmdb_cache():
     _tmdb_cache["identity"] = None
     _tmdb_cache["language"] = ""
+    _tmdbhelper_key_cache["loaded"] = False
+    _tmdbhelper_key_cache["key"] = ""
 
 
 def choose_tmdb_api_key(own, helper):
@@ -277,6 +284,15 @@ def api_key_from_text(text):
 
 
 def read_tmdbhelper_api_key():
+    if _tmdbhelper_key_cache["loaded"]:
+        return _tmdbhelper_key_cache["key"]
+    key = _read_tmdbhelper_api_key_uncached()
+    _tmdbhelper_key_cache["loaded"] = True
+    _tmdbhelper_key_cache["key"] = key
+    return key
+
+
+def _read_tmdbhelper_api_key_uncached():
     if not tmdbhelper_installed():
         return ""
     try:
@@ -325,10 +341,15 @@ def tmdb_item_query():
     imdb = _info_label("VideoPlayer.IMDBNumber") or _info_label("VideoPlayer.UniqueID(imdb)")
     if not imdb.lower().startswith("tt"):
         imdb = ""
+    helper_matches = tmdbhelper_matches_current_item()
     if show:
-        tmdb_id = _info_label("VideoPlayer.UniqueID(tvshow.tmdb)") or _tmdb_property("tvshow.tmdb_id")
+        tmdb_id = _info_label("VideoPlayer.UniqueID(tvshow.tmdb)")
+        if not tmdb_id and helper_matches:
+            tmdb_id = _tmdb_property("tvshow.tmdb_id")
         return {"kind": "tv", "tmdb_id": tmdb_id, "imdb": imdb, "title": show, "year": ""}
-    tmdb_id = _info_label("VideoPlayer.UniqueID(tmdb)") or _tmdb_property("tmdb_id")
+    tmdb_id = _info_label("VideoPlayer.UniqueID(tmdb)")
+    if not tmdb_id and helper_matches:
+        tmdb_id = _tmdb_property("tmdb_id")
     return {"kind": "movie", "tmdb_id": tmdb_id, "imdb": imdb, "title": title, "year": year}
 
 
@@ -435,12 +456,13 @@ def tmdb_api_language():
     key = resolve_tmdb_api_key()
     if not key:
         return ""
-    identity = tmdb_item_identity(tmdb_item_query())
+    item = tmdb_item_query()
+    identity = tmdb_item_identity(item)
     if not identity:
         return ""
     if _tmdb_cache.get("identity") == identity:
         return _tmdb_cache.get("language") or ""
-    language = lookup_tmdb_original_language(key, tmdb_item_query())
+    language = lookup_tmdb_original_language(key, item)
     _tmdb_cache["identity"] = identity
     _tmdb_cache["language"] = language
     return language
@@ -577,16 +599,18 @@ def resolve_priorities(priorities, audio, audiostreams, kodi_setting, timed_out)
             if tmdb_api_pending() and not timed_out:
                 return [], True, False
             api_language = tmdb_api_language()
-            if not api_language and tmdbhelper_lookup_pending() and not timed_out:
+            helper_language = "" if api_language else tmdbhelper_language()
+            if not api_language and not helper_language and tmdbhelper_lookup_pending() and not timed_out:
                 return [], True, False
             if (
                 not api_language
-                and not tmdbhelper_language()
+                and not helper_language
                 and original_language_pending(audiostreams)
                 and not timed_out
             ):
                 return [], True, False
-            spec = spec_from_text(original_language_text(audiostreams))
+            tmdb_lang = api_language or helper_language
+            spec = spec_from_text(prefer_original_text(_file_original_language(audiostreams), tmdb_lang))
         elif code == "default":
             if original_language_pending(audiostreams) and not timed_out:
                 return [], True, False
@@ -627,7 +651,8 @@ _EXTRA_DIRS = {
 
 
 def path_segments(path):
-    return [part.strip() for part in (path or "").replace("\\", "/").split("/") if part.strip()]
+    cleaned = (path or "").split("?", 1)[0].split("#", 1)[0]
+    return [part.strip() for part in cleaned.replace("\\", "/").split("/") if part.strip()]
 
 
 def path_stem(path):
@@ -723,13 +748,13 @@ def addon_profile_dir():
         return override
     try:
         import xbmcvfs
-        translated = xbmcvfs.translatePath("special://profile/addon_data/service.subtitle.enforcer")
-        if translated:
-            return translated
-    except Exception:
-        pass
-    try:
-        translated = xbmc.translatePath("special://profile/addon_data/service.subtitle.enforcer")
+        profile = ""
+        try:
+            profile = ADDON.getAddonInfo("profile") or ""
+        except Exception:
+            profile = ""
+        target = profile or "special://profile/addon_data/{0}".format(ADDON_ID)
+        translated = xbmcvfs.translatePath(target)
         if translated:
             return translated
     except Exception:
@@ -757,9 +782,22 @@ def legacy_shows_from_setting():
     return shows
 
 
+_shows_cache = {"path": "", "mtime_ns": None, "shows": []}
+
+
 def load_saved_shows():
     path = rules_file()
     if path and os.path.isfile(path):
+        try:
+            mtime_ns = os.stat(path).st_mtime_ns
+        except OSError:
+            mtime_ns = None
+        if (
+            _shows_cache["path"] == path
+            and mtime_ns is not None
+            and _shows_cache["mtime_ns"] == mtime_ns
+        ):
+            return list(_shows_cache["shows"])
         try:
             with open(path, "r", encoding="utf-8") as handle:
                 data = json.load(handle)
@@ -769,10 +807,14 @@ def load_saved_shows():
         shows = data.get("shows") if isinstance(data, dict) else None
         if not isinstance(shows, list):
             return []
-        return [
+        cleaned = [
             show for show in shows
             if isinstance(show, dict) and (show.get("title") or "").strip()
         ]
+        _shows_cache["path"] = path
+        _shows_cache["mtime_ns"] = mtime_ns
+        _shows_cache["shows"] = cleaned
+        return list(cleaned)
     shows = legacy_shows_from_setting()
     save_saved_shows(shows)
     return shows
@@ -782,12 +824,27 @@ def save_saved_shows(shows):
     path = rules_file()
     if not path:
         return False
+    folder = os.path.dirname(path)
+    tmp_path = path + ".tmp"
     try:
-        os.makedirs(os.path.dirname(path), exist_ok=True)
-        with open(path, "w", encoding="utf-8") as handle:
+        os.makedirs(folder, exist_ok=True)
+        with open(tmp_path, "w", encoding="utf-8") as handle:
             json.dump({"shows": shows}, handle, ensure_ascii=False, indent=2)
+        os.replace(tmp_path, path)
+        try:
+            mtime_ns = os.stat(path).st_mtime_ns
+        except OSError:
+            mtime_ns = None
+        _shows_cache["path"] = path
+        _shows_cache["mtime_ns"] = mtime_ns
+        _shows_cache["shows"] = list(shows)
         return True
     except Exception:
+        try:
+            if os.path.exists(tmp_path):
+                os.remove(tmp_path)
+        except OSError:
+            pass
         xbmc.log("{0}: Could not save TV shows".format(ADDON_NAME), xbmc.LOGINFO)
         return False
 
@@ -899,8 +956,6 @@ def candidate_titles(info):
     elif showtitle:
         titles.append(showtitle)
     elif title and kind != "tvshow":
-        titles.append(title)
-    elif title and kind == "tvshow":
         titles.append(title)
     for segment in path_segments(info.get("path"))[:-1]:
         if segment not in titles:
@@ -1480,7 +1535,7 @@ def describe_stream(stream):
 
 
 def _addon():
-    return xbmcaddon.Addon()
+    return ADDON
 
 
 def _string_setting(setting_id, default=""):
@@ -1498,12 +1553,18 @@ def _string_setting(setting_id, default=""):
 def _bool_setting(setting_id, default=False):
     addon = _addon()
     try:
+        raw = addon.getSetting(setting_id)
+    except Exception:
+        raw = None
+    if raw is not None:
+        text = str(raw).strip().lower()
+        if text:
+            return text in {"1", "true", "yes"}
+        return default
+    try:
         return bool(addon.getSettingBool(setting_id))
     except Exception:
-        raw = str(addon.getSetting(setting_id)).strip().lower()
-        if not raw:
-            return default
-        return raw in {"1", "true", "yes"}
+        return default
 
 
 def _int_setting(setting_id, default, low, high):
@@ -1714,8 +1775,15 @@ class SubtitleEnforcer(xbmc.Player):
         self._session_mark = 0.0
         self._seek_at = 0.0
         self._stopped = False
+        self._enabled = None
         self._reset()
         xbmc.log("{0}: Service initialized".format(ADDON_NAME), xbmc.LOGINFO)
+
+    def on_settings_changed(self):
+        self._enabled = None
+        self._priorities = None
+        self._exception_checked = False
+        clear_tmdb_cache()
 
     def _reset(self):
         self._pending = False
@@ -1737,6 +1805,8 @@ class SubtitleEnforcer(xbmc.Player):
         self._subs_disabled = False
         self._ignore_audio_rule = False
         self._show_priorities = None
+        self._priorities = None
+        self._exception_checked = False
         clear_tmdb_cache()
 
     def onPlayBackStarted(self):
@@ -1803,7 +1873,9 @@ class SubtitleEnforcer(xbmc.Player):
         self._reset()
 
     def tick(self):
-        if not _bool_setting("enabled", True):
+        if self._enabled is None:
+            self._enabled = _bool_setting("enabled", True)
+        if not self._enabled:
             self._pending = False
             self._active = False
             return
@@ -1873,6 +1945,8 @@ class SubtitleEnforcer(xbmc.Player):
         self._subs_disabled = False
         self._ignore_audio_rule = False
         self._show_priorities = None
+        self._priorities = None
+        self._exception_checked = False
         clear_tmdb_cache()
         name = self._path.replace("\\", "/").rsplit("/", 1)[-1] or "video"
         xbmc.log("{0}: Video playback started ({1})".format(ADDON_NAME, name), xbmc.LOGINFO)
@@ -1965,7 +2039,9 @@ class SubtitleEnforcer(xbmc.Player):
         if self._subtitle_done:
             return
         elapsed = time.monotonic() - self._started
-        priorities = load_priorities()
+        if self._priorities is None:
+            self._priorities = load_priorities()
+        priorities = self._priorities
 
         playerid = self._player_id()
         if playerid is None:
@@ -1973,9 +2049,11 @@ class SubtitleEnforcer(xbmc.Player):
                 self._give_up("No video player was available for subtitle selection")
             return
 
-        path, showtitle = self._playback_names(playerid)
-        if self._apply_playback_exception(playerid, path, showtitle):
-            return
+        if not self._exception_checked:
+            self._exception_checked = True
+            path, showtitle = self._playback_names(playerid)
+            if self._apply_playback_exception(playerid, path, showtitle):
+                return
         if getattr(self, "_show_priorities", None) is not None:
             priorities = self._show_priorities
 
@@ -2559,11 +2637,12 @@ def context_hit():
     elif dbtype == "season" and not show_id:
         show_id = _child_show_id("VideoLibrary.GetSeasonDetails", "seasonid", "seasondetails", dbid)
     if dbtype in ("episode", "season", "tvshow"):
+        tvshow_lookup_id = show_id or (dbid if dbtype == "tvshow" else "")
         details = _library_details(
             "VideoLibrary.GetTVShowDetails",
             "tvshowid",
             "tvshowdetails",
-            show_id or dbid,
+            tvshow_lookup_id,
             properties,
         )
         if details:
@@ -2679,11 +2758,20 @@ def main():
         mark_service_running(False)
 
 
+class _ServiceMonitor(xbmc.Monitor):
+    def __init__(self, player):
+        xbmc.Monitor.__init__(self)
+        self._player = player
+
+    def onSettingsChanged(self):
+        self._player.on_settings_changed()
+
+
 def run_service():
     version = ADDON.getAddonInfo("version")
     xbmc.log("{0} {1}: Service starting".format(ADDON_NAME, version), xbmc.LOGINFO)
     player = SubtitleEnforcer()
-    monitor = xbmc.Monitor()
+    monitor = _ServiceMonitor(player)
     try:
         while not monitor.abortRequested():
             try:

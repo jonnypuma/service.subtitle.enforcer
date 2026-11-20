@@ -59,7 +59,7 @@ A linked rule follows that show's library id, TMDB id, or IMDb id. A movie and a
 
 ## Exceptions
 
-Trailers and extras are left unchanged, including the seek-back. A trailer is a file whose name ends with "trailer", or a file inside a Trailers folder. Extras are samples, featurettes, interviews, deleted scenes, and behind-the-scenes videos.
+Trailers and extras are left unchanged, including the seek-back. A trailer is a file whose name ends with "trailer", or a file inside a Trailers folder (including streaming URLs with query parameters). Extras are samples, featurettes, interviews, deleted scenes, and behind-the-scenes videos.
 
 ## On screen
 
