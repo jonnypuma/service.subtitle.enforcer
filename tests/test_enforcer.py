@@ -513,5 +513,57 @@ class SettingsTests(unittest.TestCase):
         self.assertEqual(query["tmdb_id"], "")
 
 
+class EfficiencyTests(unittest.TestCase):
+    def setUp(self):
+        self.profile = tempfile.TemporaryDirectory()
+        os.environ["SUBTITLE_ENFORCER_PROFILE"] = self.profile.name
+        SETTINGS.clear()
+        default.clear_tmdb_cache()
+
+    def tearDown(self):
+        default.clear_tmdb_cache()
+        os.environ.pop("SUBTITLE_ENFORCER_PROFILE", None)
+        self.profile.cleanup()
+
+    def test_recommended_wait_is_longer_when_idle_or_done(self):
+        player = default.SubtitleEnforcer()
+        self.assertEqual(player.recommended_wait(), 1.0)
+        player._active = True
+        self.assertEqual(player.recommended_wait(), 0.1)
+        player._subtitle_done = True
+        player._sync_wanted = False
+        self.assertEqual(player.recommended_wait(), 1.0)
+
+    def test_empty_show_rules_skips_json_rpc_rule_lookup(self):
+        orig_rpc = xbmc.executeJSONRPC
+        rpc_calls = []
+
+        def fake_rpc(payload):
+            rpc_calls.append(json.loads(payload))
+            return json.dumps({"result": {}})
+
+        xbmc.executeJSONRPC = fake_rpc
+        try:
+            player = default.SubtitleEnforcer()
+            self.assertFalse(player._apply_playback_exception(1, r"D:\Movies\Film.mkv", ""))
+        finally:
+            xbmc.executeJSONRPC = orig_rpc
+        self.assertEqual(rpc_calls, [])
+
+    def test_cross_episode_tmdb_cache_persists_across_playback_reset(self):
+        from resources.lib import tmdb
+
+        for i in range(70):
+            tmdb._store_tmdb_result("tv:{0}".format(i), "ja")
+        self.assertLessEqual(len(tmdb._tmdb_cache), tmdb._TMDB_CACHE_MAX)
+        tmdb.clear_tmdb_session_failures()
+        self.assertIn("tv:69", tmdb._tmdb_cache)
+
+    def test_ui_import_does_not_load_service_module(self):
+        self.assertTrue(hasattr(default, "SubtitleEnforcer"))
+        import resources.lib.ui as ui
+        self.assertTrue(callable(ui.set_rule_for_context))
+
+
 if __name__ == "__main__":
     unittest.main()

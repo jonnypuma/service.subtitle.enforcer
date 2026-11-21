@@ -1,5 +1,13 @@
 # Changelog
 
+## Version 2.4.2
+- Split `default.py` into focused modules under `resources/lib/` so the context menu and rules script load without importing the background service
+- Added adaptive polling (`1.0s` when idle or finished, `0.1s` while settling/seeking) and early exit in `tick()` once subtitle selection and seek-back are complete
+- Throttled `Player.GetProperties` stream polling to `0.25s` while waiting for subtitle streams to settle
+- Made TMDB API lookups non-blocking on a background thread and added a bounded (64-entry) cross-episode TMDB cache
+- Skipped show-rule JSON-RPC lookups when no rules are saved, and reused `Player.GetItem` data instead of fetching it twice
+- Replaced per-word regex matching on subtitle stream names with `O(1)` pre-tokenized word set lookups
+
 ## Version 2.4.1
 - Separated the rules script entry point (`resources/lib/script.py`) from the background service
 - Fixed context-menu TV show lookup when opened on an episode or season without a `TvShowDBID`

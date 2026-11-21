@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="service.subtitle.enforcer" name="Subtitle Enforcer" version="2.4.1" provider-name="Skippy-McSkipface">
+<addon id="service.subtitle.enforcer" name="Subtitle Enforcer" version="2.4.2" provider-name="Skippy-McSkipface">
     <requires>
         <import addon="xbmc.python" version="3.0.0"/>
     </requires>
@@ -22,7 +22,7 @@
         <license>MIT</license>
         <website>https://jonnypuma.github.io/#/service.subtitle.enforcer</website>
         <source>https://github.com/jonnypuma/service.subtitle.enforcer</source>
-        <news>Version 2.4.1 fixes context-menu TV show lookups, stale TMDBHelper IDs, URL trailer/extra detection, and reduces background service overhead.</news>
+        <news>Version 2.4.2 splits the add-on into focused modules, makes TMDB lookups non-blocking and cached across episodes, and reduces idle and playback polling overhead.</news>
         <assets>
             <icon>icon.png</icon>
             <fanart>fanart.png</fanart>

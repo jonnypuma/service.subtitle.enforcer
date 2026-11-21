@@ -3,10 +3,12 @@
 import os
 import sys
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+if ROOT not in sys.path:
+    sys.path.insert(0, ROOT)
 
-import default
+from resources.lib.ui import set_rule_for_context
 
 
 if __name__ == "__main__":
-    default.set_rule_for_context()
+    set_rule_for_context()
